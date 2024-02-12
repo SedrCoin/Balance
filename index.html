@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>График баланса USDT</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <h1 style="color: rgba(75, 192, 192, 1); text-align: center; font-size: 1,5em;">График баланса USDT</h1>
+
+  <canvas id="balanceChart" style="width: 100%; height: 75vh; "></canvas>
+  
+  <script>
+
+
+
+    async function fetchData() {
+      const response = await fetch('http://localhost:3000/balance');
+      const data = await response.json();
+      return { timestamp: new Date().toLocaleString(), balance: parseFloat(data.balance) };
+    }
+
+    async function updateChart() {
+      const balanceData = await fetchData();
+      const chart = document.getElementById('balanceChart').getContext('2d');
+
+      let savedData = localStorage.getItem('balanceData');
+      if (savedData) {
+        savedData = JSON.parse(savedData);
+      } else {
+        savedData = { labels: [], balances: [] };
+      }
+
+      savedData.labels.push(balanceData.timestamp);
+      savedData.balances.push(balanceData.balance);
+      localStorage.setItem('balanceData', JSON.stringify(savedData));
+
+      if (!window.myChart) {
+        window.myChart = new Chart(chart, {
+          type: 'line',
+          data: {
+            labels: savedData.labels,
+            datasets: [{
+              label: 'Баланс USDT',
+              data: savedData.balances,
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true, // Включаем адаптивность
+            maintainAspectRatio: true, // Отключаем пропорциональное сохранение соотношения сторон
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  unit: 'second'
+                }
+              }],
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
+          }
+        });
+      } else {
+        window.myChart.data.labels = savedData.labels;
+        window.myChart.data.datasets[0].data = savedData.balances;
+        window.myChart.update();
+      }
+    }
+
+    window.onload = function() {
+      updateChart();
+      setInterval(updateChart, 10000);
+    };
+
+
+    localStorage.clear()
+
+
+  </script>
+</body>
+</html>
