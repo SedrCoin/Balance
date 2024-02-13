@@ -17,7 +17,7 @@
 
 
     async function fetchData() {
-      const response = await fetch('http://localhost:3000/balance');
+      const response = await fetch('http://212.109.198.222:3000/balance');
       const data = await response.json();
       return { timestamp: new Date().toLocaleString(), balance: parseFloat(data.balance) };
     }
@@ -78,6 +78,8 @@
     window.onload = function() {
       updateChart();
       setInterval(updateChart, 10000);
+      
+    localStorage.clear()
     };
 
 
